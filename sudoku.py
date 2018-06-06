@@ -3,28 +3,34 @@ import sys
 def parse_sudoku(s):
     #Converts a sudoku in string form to a 2D list of integers.
     sudoku = []
-    for i in range(81):
-        if i % 9 == 0:
-            sudoku.append([int(s[i])])
-        else:
-            sudoku[i // 9] += [int(s[i])]
+    s = [int(i) for i in s]
+    for i in range(9):
+        sudoku.append(s[i*9:i*9+9])
     return sudoku
 
-def guess_field(sudoku, index):
-    #The main solving method. Recursively guesses fields, eventually yielding the solution.
+def solve(sudoku, index):
+    #The main solving method. Recursively checks if a given field must be filled and if it does uses the guess method to guess.
+    if sudoku[index // 9][index % 9] != 0:
+        solve(sudoku, index + 1)
+    else:
+        guess(sudoku, index)
+
+def guess(sudoku, index):
+    #guesses a number for a field and checks its validity. If its a possible value, it starts solving the next field, else it will guess again
     row = index // 9
     col = index % 9
-    if sudoku[row][col] != 0:
-        guess_field(sudoku, index + 1)
-    else:
-        for i in range(1,10):
-            sudoku[row][col] = i
-            if check(sudoku, row, col):
-                if index == 80:
-                    print(sudoku)
-                    sys.exit(1)
-                guess_field(sudoku, index + 1)
-        sudoku[row][col] = 0
+    for i in range(1,10):
+        sudoku[row][col] = i
+        if check(sudoku, row, col):
+            check_solved(sudoku, index)
+            solve(sudoku, index + 1)
+    sudoku[row][col] = 0    
+
+def check_solved(sudoku, index):
+    #Checks whether or not the end had been reached.
+    if index == 80:
+        print(sudoku)
+        sys.exit(1)
 
 def check(sudoku, row, col):
     #Checks the validity of a guess.
@@ -55,7 +61,7 @@ def check_list(lst):
 
 def main():
     sudoku = parse_sudoku(sys.argv[1])
-    guess_field(sudoku,0)
+    solve(sudoku,0)
 
 if __name__ == '__main__':
   main()
